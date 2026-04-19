@@ -2,10 +2,10 @@ import { useReveal } from "@/hooks/useReveal";
 import { Check } from "lucide-react";
 
 const points = [
-  "Producto con alto valor percibido gracias a personalización exclusiva",
+  "Calidad de Élite: Construcción en carbono 12K/24K y núcleos de EVA.",
   "Catálogo respaldado por jugadores profesionales",
-  "Márgenes premium para distribución selectiva",
-  "Programa de co-branding con tu club o marca",
+  "Rentabilidad Superior: Márgenes competitivos frente a marcas masivas.",
+  "Stock Real: Disponibilidad inmediata y despacho a todo el país.",
 ];
 
 export const B2B = () => {
@@ -19,8 +19,7 @@ export const B2B = () => {
             Vendé lo que <span className="text-gold-gradient italic">nadie más</span> tiene.
           </h2>
           <p className="text-muted-foreground text-lg leading-relaxed mb-8">
-            VERSUS no es otra marca de paletas. Es la única firma que personaliza piezas para
-            jugadores de élite. Llevá ese diferencial a tu negocio.
+            VERSUS equipamiento de alta gama para distribuidores.
           </p>
           <a
             href="https://wa.me/1234567890?text=Hola!%20Quisiera%20solicitar%20el%20cat%C3%A1logo%20mayorista%20de%20VERSUS."
