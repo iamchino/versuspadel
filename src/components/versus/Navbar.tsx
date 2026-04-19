@@ -5,7 +5,6 @@ import logo from "@/assets/Logotipo.png";
 
 const links = [
   { label: "Inicio", href: "/" },
-  { label: "Tienda", href: "/store" },
   { label: "Personalización", href: "/#custom" },
   { label: "Mayoristas", href: "/#b2b" }
 ];
@@ -61,12 +60,12 @@ export const Navbar = () => {
           ))}
         </ul>
 
-        <Link
+        {/* <Link
           to="/store"
           className="hidden md:inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] font-semibold text-primary-foreground bg-primary px-5 py-2.5 rounded-sm hover:bg-primary-glow transition-colors"
         >
           Comprar
-        </Link>
+        </Link> */}
 
         <button
           onClick={() => setOpen((v) => !v)}
@@ -91,7 +90,7 @@ export const Navbar = () => {
                 </Link>
               </li>
             ))}
-            <li>
+            {/* <li>
               <Link
                 to="/store"
                 onClick={() => setOpen(false)}
@@ -99,7 +98,7 @@ export const Navbar = () => {
               >
                 Comprar
               </Link>
-            </li>
+            </li> */}
           </ul>
         </div>
       )}
