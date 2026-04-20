@@ -11,7 +11,7 @@ export const Footer = () => {
               <img src={logo} alt="VERSUS" className="h-16 md:h-24 w-auto" loading="lazy" />
             </div>
             <p className="text-muted-foreground max-w-md">
-              No jugás con cualquiera. Jugás con lo que te representa.
+              Jugás con lo que te representa.
             </p>
           </div>
 

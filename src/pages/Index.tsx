@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/versus/Navbar";
 import { Footer } from "@/components/versus/Footer";
+import heroImg from "@/assets/hero2.jpg";
 
 const Index = () => {
   return (
@@ -7,19 +8,31 @@ const Index = () => {
       <Navbar />
       <h1 className="sr-only">VERSUS Pádel — Paletas personalizadas de élite</h1>
       
-      <div className="flex-1 flex flex-col items-center justify-center py-32 px-6 text-center mt-24">
-        <div className="animate-fade-in-up">
+      <section className="relative flex-1 min-h-[80vh] flex flex-col items-center justify-center py-32 px-6 text-center w-full overflow-hidden">
+        <div className="absolute inset-0">
+          <img
+            src={heroImg}
+            alt="Versus Padel Background"
+            width={1600}
+            height={1024}
+            className="w-full h-full object-cover ken-burns opacity-40 mix-blend-luminosity"
+          />
+          <div className="absolute inset-0 hero-overlay bg-black/40" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-transparent to-background" />
+        </div>
+
+        <div className="relative z-10 animate-fade-in-up mt-20">
           <div className="inline-block text-xs uppercase tracking-[0.4em] text-primary mb-8 border border-primary/30 px-4 py-2 rounded-full bg-primary/5 backdrop-blur-sm">
             Sitio en construcción
           </div>
-          <h2 className="font-display text-5xl sm:text-6xl md:text-[7vw] lg:text-[7rem] leading-tight md:leading-[0.9] uppercase text-balance text-gold-gradient mb-8">
-            Próximamente
+          <h2 className="font-display text-5xl sm:text-6xl md:text-[7vw] lg:text-[7rem] leading-tight md:leading-[0.9] uppercase text-balance mb-8">
+            <span className="text-white">Próxima</span><span className="text-gold-gradient">mente</span>
           </h2>
           <p className="max-w-xl mx-auto text-base md:text-lg text-muted-foreground leading-relaxed">
             Estamos preparando la nueva plataforma VERSUS. Equipamiento de élite para jugadores exigentes. Dejanos tu email o contáctanos para ser el primero en enterarte.
           </p>
         </div>
-      </div>
+      </section>
 
       <Footer />
     </main>

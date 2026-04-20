@@ -1,4 +1,4 @@
-import heroImg from "@/assets/Leyendnegras.jpg";
+import heroImg from "@/assets/hero2.jpg";
 import { ArrowRight, Sparkles } from "lucide-react";
 
 export const Hero = () => {
@@ -10,9 +10,9 @@ export const Hero = () => {
           alt="Jugador profesional con paleta personalizada VERSUS"
           width={1600}
           height={1024}
-          className="w-full h-full object-cover ken-burns opacity-90"
+          className="w-full h-full object-cover ken-burns opacity-40 mix-blend-luminosity"
         />
-        <div className="absolute inset-0 hero-overlay" />
+        <div className="absolute inset-0 hero-overlay bg-black/40" />
         <div className="absolute inset-0 bg-gradient-to-r from-background via-background/40 to-transparent" />
       </div>
 
@@ -25,7 +25,7 @@ export const Hero = () => {
           <h1 className="font-display text-5xl sm:text-6xl md:text-[7vw] lg:text-[7rem] leading-tight md:leading-[0.9] uppercase text-balance">
             Paletas que
             <br />
-            <span className="text-gold-gradient italic">marcan</span> la cancha.
+            <span className="text-gold-gradient italic pr-2">marcan</span> la cancha.
           </h1>
 
           <p className="mt-8 max-w-xl text-base md:text-lg text-muted-foreground leading-relaxed">
