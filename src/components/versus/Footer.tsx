@@ -29,12 +29,12 @@ export const Footer = () => {
             <div className="text-xs uppercase tracking-[0.3em] text-primary mb-4">Contacto</div>
             <ul className="space-y-3 text-sm text-foreground/80">
               <li>
-                <a href="#" className="inline-flex items-center gap-2 hover:text-primary transition-colors">
+                <a href="http://wa.me/543412694610" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 hover:text-primary transition-colors">
                   <MessageCircle size={16} /> WhatsApp
                 </a>
               </li>
               <li>
-                <a href="#" className="inline-flex items-center gap-2 hover:text-primary transition-colors">
+                <a href="https://www.instagram.com/versuspadel/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 hover:text-primary transition-colors">
                   <Instagram size={16} /> @versuspadel
                 </a>
               </li>
@@ -51,7 +51,9 @@ export const Footer = () => {
 
       {/* Floating WhatsApp */}
       <a
-        href="#"
+        href="http://wa.me/543412694610"
+        target="_blank"
+        rel="noopener noreferrer"
         aria-label="WhatsApp"
         className="fixed bottom-6 right-6 z-40 bg-primary text-primary-foreground w-14 h-14 rounded-full flex items-center justify-center shadow-[0_10px_30px_-5px_hsl(42_88%_55%/0.5)] hover:scale-110 transition-transform"
       >

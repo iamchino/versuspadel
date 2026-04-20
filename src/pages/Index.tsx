@@ -7,7 +7,7 @@ const Index = () => {
     <main className="min-h-screen bg-background text-foreground flex flex-col">
       <Navbar />
       <h1 className="sr-only">VERSUS Pádel — Paletas personalizadas de élite</h1>
-      
+
       <section className="relative flex-1 min-h-[80vh] flex flex-col items-center justify-center py-32 px-6 text-center w-full overflow-hidden">
         <div className="absolute inset-0">
           <img
@@ -29,8 +29,18 @@ const Index = () => {
             <span className="text-white">Próxima</span><span className="text-gold-gradient">mente</span>
           </h2>
           <p className="max-w-xl mx-auto text-base md:text-lg text-muted-foreground leading-relaxed">
-            Estamos preparando la nueva plataforma VERSUS. Equipamiento de élite para jugadores exigentes. Dejanos tu email o contáctanos para ser el primero en enterarte.
+            Estamos preparando la nueva plataforma VERSUS. Equipamiento de élite para jugadores exigentes. Contáctanos para ser el primero en enterarte.
           </p>
+          <div className="mt-10 flex justify-center">
+            <a
+              href="http://wa.me/543412694610"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 text-sm uppercase tracking-[0.2em] font-bold hover:bg-primary-glow transition-all"
+            >
+              Contactar por WhatsApp
+            </a>
+          </div>
         </div>
       </section>
 
