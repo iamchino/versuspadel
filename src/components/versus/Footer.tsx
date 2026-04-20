@@ -38,7 +38,6 @@ export const Footer = () => {
                   <Instagram size={16} /> @versuspadel
                 </a>
               </li>
-              <li>hola@versuspadel.com</li>
             </ul>
           </div>
         </div>
