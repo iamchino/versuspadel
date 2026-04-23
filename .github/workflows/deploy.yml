@@ -5,11 +5,6 @@
 # 1. Installs dependencies & builds the React app
 # 2. Uploads the built files (dist/) + PHP backend to Ferozo via FTP
 #
-# Required GitHub Secrets:
-#   FTP_SERVER   → e.g. l0100520.ferozo.com
-#   FTP_USERNAME → e.g. l0100520
-#   FTP_PASSWORD → your FTP password
-#
 # Architecture:
 #   versuspadel.ar       → /public_html/ (React SPA)
 #   api.versuspadel.ar   → /public_html/api/ (WordPress + WooCommerce)
@@ -50,23 +45,34 @@ jobs:
           cp backend/*.php dist/backend/
           cp backend/.htaccess dist/backend/
 
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
       - name: Deploy to Ferozo via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          port: 21
-          local-dir: ./dist/
-          server-dir: /public_html/
-          dangerous-clean-slate: false
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            **/api/**
-            **/wp-*
-            **/wp-content/**
-            **/wp-includes/**
-            **/wp-admin/**
-            **/cgi-bin/**
+        run: |
+          lftp -u "${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }}" ${{ secrets.FTP_SERVER }} <<EOF
+          set ftp:ssl-allow no
+          set net:max-retries 5
+          set net:reconnect-interval-base 5
+          set net:reconnect-interval-multiplier 1
+          set mirror:parallel-transfer-count 2
+          mirror --reverse --verbose --ignore-time \
+            --exclude ^api/ \
+            --exclude ^wp- \
+            --exclude ^cgi-bin/ \
+            --exclude ^css/ \
+            --exclude ^img/ \
+            --exclude ^logos/ \
+            --exclude \.htpasswd \
+            --exclude index\.php \
+            --exclude xmlrpc\.php \
+            --exclude readme\.html \
+            --exclude licencia\.txt \
+            --exclude license\.txt \
+            --exclude \.htaccess\.bk \
+            --exclude wp-config\.php \
+            --exclude wp-config-sample\.php \
+            ./dist/ /public_html/
+          bye
+          EOF
+          echo "Deploy complete!"
