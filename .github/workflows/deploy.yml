@@ -3,12 +3,16 @@
 #
 # Triggers on every push to `main`.
 # 1. Installs dependencies & builds the React app
-# 2. Uploads the built files (dist/) + PHP API to Ferozo via FTP
+# 2. Uploads the built files (dist/) + PHP backend to Ferozo via FTP
 #
 # Required GitHub Secrets:
 #   FTP_SERVER   → e.g. l0100520.ferozo.com
 #   FTP_USERNAME → e.g. l0100520
 #   FTP_PASSWORD → your FTP password
+#
+# Architecture:
+#   versuspadel.ar       → /public_html/ (React SPA)
+#   api.versuspadel.ar   → /public_html/api/ (WordPress + WooCommerce)
 # ──────────────────────────────────────────────────────────
 
 name: Deploy to DonWeb
@@ -40,10 +44,11 @@ jobs:
         env:
           VITE_WC_STORE_URL: https://api.versuspadel.ar
 
-      - name: Copy PHP API files to dist
+      - name: Copy PHP backend files to dist
         run: |
-          mkdir -p dist/api
-          cp api/*.php dist/api/
+          mkdir -p dist/backend
+          cp backend/*.php dist/backend/
+          cp backend/.htaccess dist/backend/
 
       - name: Deploy to Ferozo via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -53,9 +58,15 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
           local-dir: ./dist/
-          server-dir: /
+          server-dir: /public_html/
           dangerous-clean-slate: false
           exclude: |
             **/.git*
             **/.git*/**
             **/node_modules/**
+            **/api/**
+            **/wp-*
+            **/wp-content/**
+            **/wp-includes/**
+            **/wp-admin/**
+            **/cgi-bin/**

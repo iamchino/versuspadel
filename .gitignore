@@ -19,6 +19,7 @@ dist-ssr
 
 # PHP config with server secrets (DonWeb)
 api/config.php
+backend/config.php
 
 # Editor directories and files
 .vscode/*

@@ -1,7 +1,7 @@
 /**
  * src/lib/admin-api.ts — Frontend API helpers for the Admin panel
  *
- * All calls go through /api/*.php (PHP backend on DonWeb/Ferozo).
+ * All calls go through /backend/*.php (PHP backend on DonWeb/Ferozo).
  * The auth token is stored in sessionStorage after login.
  * No WooCommerce credentials ever touch the browser.
  *
@@ -138,7 +138,7 @@ export async function login(password: string): Promise<{ token: string }> {
     return { token: DEMO_TOKEN };
   }
 
-  const res = await fetch('/api/auth.php', {
+  const res = await fetch('/backend/auth.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ password }),
@@ -157,7 +157,7 @@ export async function login(password: string): Promise<{ token: string }> {
 export async function fetchAdminProducts(): Promise<AdminProduct[]> {
   if (isDemoMode()) return Promise.resolve([...DEMO_PRODUCTS]);
 
-  const res = await fetch('/api/products.php', { headers: authHeaders() });
+  const res = await fetch('/backend/products.php', { headers: authHeaders() });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
     throw new Error(data.error || 'Failed to fetch products');
@@ -166,7 +166,7 @@ export async function fetchAdminProducts(): Promise<AdminProduct[]> {
 }
 
 export async function createProduct(product: ProductFormData): Promise<AdminProduct> {
-  const res = await fetch('/api/products.php', {
+  const res = await fetch('/backend/products.php', {
     method: 'POST',
     headers: authHeaders(),
     body: JSON.stringify(product),
@@ -179,7 +179,7 @@ export async function createProduct(product: ProductFormData): Promise<AdminProd
 }
 
 export async function updateProduct(id: number, product: Partial<ProductFormData>): Promise<AdminProduct> {
-  const res = await fetch(`/api/products.php?id=${id}`, {
+  const res = await fetch(`/backend/products.php?id=${id}`, {
     method: 'PUT',
     headers: authHeaders(),
     body: JSON.stringify(product),
@@ -192,7 +192,7 @@ export async function updateProduct(id: number, product: Partial<ProductFormData
 }
 
 export async function deleteProduct(id: number): Promise<void> {
-  const res = await fetch(`/api/products.php?id=${id}`, {
+  const res = await fetch(`/backend/products.php?id=${id}`, {
     method: 'DELETE',
     headers: authHeaders(),
   });
@@ -207,7 +207,7 @@ export async function deleteProduct(id: number): Promise<void> {
 export async function fetchCategories(): Promise<AdminCategory[]> {
   if (isDemoMode()) return Promise.resolve([...DEMO_CATEGORIES]);
 
-  const res = await fetch('/api/categories.php', { headers: authHeaders() });
+  const res = await fetch('/backend/categories.php', { headers: authHeaders() });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
     throw new Error(data.error || 'Failed to fetch categories');
@@ -223,7 +223,7 @@ export async function uploadImage(file: File): Promise<{ id: number; src: string
     reader.onload = async () => {
       try {
         const base64 = (reader.result as string).split(',')[1];
-        const res = await fetch('/api/upload-image.php', {
+        const res = await fetch('/backend/upload-image.php', {
           method: 'POST',
           headers: authHeaders(),
           body: JSON.stringify({
