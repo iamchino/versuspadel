@@ -1,20 +1,29 @@
-# Redirección HTTP a HTTPS
+# ── Force index.html over index.php (React over WordPress) ──
+DirectoryIndex index.html
+
+# Enable URL rewriting
 RewriteEngine On
-RewriteCond %{HTTPS} off
-RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-# Servir archivos PHP del backend directamente
-RewriteRule ^backend/(.+\.php)$ backend/$1 [L]
+# HTTPS redirect — DISABLED until SSL is ready
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-# No interferir con el subdirectorio api/ (WordPress para api.versuspadel.ar)
+# Don't interfere with /api/ directory (WordPress for api.versuspadel.ar)
 RewriteRule ^api/ - [L]
 
-# Si es un archivo o directorio real, servirlo directamente
+# Don't interfere with /backend/ PHP files
+RewriteRule ^backend/(.+\.php)$ backend/$1 [L]
+
+# Don't interfere with WordPress admin or core files
+RewriteRule ^wp- - [L]
+RewriteRule ^xmlrpc\.php - [L]
+
+# If it's a real file or directory, serve it directly
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-# SPA fallback: todo lo demás va a index.html (React Router)
+# SPA fallback: everything else goes to index.html (React Router)
 RewriteRule ^(.*)$ /index.html [L]
 
 # ── Security Headers ──────────────────────────────────────
