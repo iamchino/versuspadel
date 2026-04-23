@@ -1,0 +1,61 @@
+# ──────────────────────────────────────────────────────────
+# GitHub Actions: Deploy to DonWeb/Ferozo via FTP
+#
+# Triggers on every push to `main`.
+# 1. Installs dependencies & builds the React app
+# 2. Uploads the built files (dist/) + PHP API to Ferozo via FTP
+#
+# Required GitHub Secrets:
+#   FTP_SERVER   → e.g. l0100520.ferozo.com
+#   FTP_USERNAME → e.g. l0100520
+#   FTP_PASSWORD → your FTP password
+# ──────────────────────────────────────────────────────────
+
+name: Deploy to DonWeb
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production bundle
+        run: npm run build
+        env:
+          VITE_WC_STORE_URL: https://api.versuspadel.ar
+
+      - name: Copy PHP API files to dist
+        run: |
+          mkdir -p dist/api
+          cp api/*.php dist/api/
+
+      - name: Deploy to Ferozo via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
+          local-dir: ./dist/
+          server-dir: /
+          dangerous-clean-slate: false
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**

@@ -12,6 +12,14 @@ dist
 dist-ssr
 *.local
 
+# Environment variables (contain secrets)
+.env
+.env.local
+.env.production
+
+# PHP config with server secrets (DonWeb)
+api/config.php
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

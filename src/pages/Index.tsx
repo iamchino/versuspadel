@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/versus/Navbar";
 import { Footer } from "@/components/versus/Footer";
+import { CustomFlow } from "@/components/versus/CustomFlow";
 import heroImg from "@/assets/hero2.jpg";
 
 const Index = () => {
@@ -43,6 +44,8 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      <CustomFlow />
 
       <Footer />
     </main>

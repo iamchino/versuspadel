@@ -1,0 +1,14 @@
+# Block access to config file (contains secrets)
+<Files "config.php">
+    Require all denied
+</Files>
+
+# Block access to TypeScript source files (from Vercel era)
+<FilesMatch "\.(ts|tsx)$">
+    Require all denied
+</FilesMatch>
+
+# Only allow PHP files to be executed
+<FilesMatch "\.php$">
+    Require all granted
+</FilesMatch>

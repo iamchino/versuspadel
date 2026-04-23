@@ -106,7 +106,7 @@ const ProductDetails = () => {
                     onClick={() => setSelectedImage(idx)}
                     className={`aspect-square bg-secondary border overflow-hidden transition-all ${selectedImage === idx ? 'border-primary ring-1 ring-primary' : 'border-border opacity-70 hover:opacity-100'}`}
                   >
-                    <img src={img.thumbnail} alt={img.alt} className="w-full h-full object-cover" />
+                    <img src={img.thumbnail} alt={img.alt} loading="lazy" className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>

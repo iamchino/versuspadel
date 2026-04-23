@@ -1,10 +1,30 @@
 import { useReveal } from "@/hooks/useReveal";
-import { ArrowRight, ImagePlus } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+
+import imgDibu from "@/assets/VDibu1.jpg";
+import imgDiMaria from "@/assets/VDiMaria.jpg";
+import imgVert1 from "@/assets/Vert1.jpg";
+import imgVert2 from "@/assets/Vert2.jpg";
+import imgVert3 from "@/assets/vert3.jpg";
+import imgLavezzi from "@/assets/Vlavezzi.jpg";
+import imgMr11 from "@/assets/VMr11.jpg";
+import imgGustavo from "@/assets/gustavolietti.jpeg";
 
 const steps = [
   { n: "01", title: "Elegís base", desc: "Seleccioná el modelo que se adapta a tu juego." },
   { n: "02", title: "Personalizás diseño", desc: "Color, gráfica, iniciales, todo es tuyo." },
   { n: "03", title: "Creamos tu pieza única", desc: "La fabricamos a mano, exclusivamente para vos." },
+];
+
+const galleryImages = [
+  { src: imgDibu, alt: "Dibu Martínez con paleta VERSUS personalizada", label: "Dibu Martínez" },
+  { src: imgMr11, alt: "Maxi Rodríguez con paleta VERSUS MR11", label: "Maxi Rodríguez" },
+  { src: imgDiMaria, alt: "Di María con paleta VERSUS personalizada", label: "Di María" },
+  { src: imgVert1, alt: "Jugador con paleta VERSUS personalizada", label: "Kily González" },
+  { src: imgVert3, alt: "Jugador con paleta VERSUS personalizada", label: "Coronel y Santi Lopez" },
+  { src: imgLavezzi, alt: "Pocho Lavezzi con paleta VERSUS", label: "Pocho Lavezzi" },
+  { src: imgVert2, alt: "Jugador con paleta VERSUS personalizada", label: "Alejo Veliz" },
+  { src: imgGustavo, alt: "Gustavo Lietti con paleta VERSUS", label: "Gustavo Lietti" },
 ];
 
 export const CustomFlow = () => {
@@ -26,45 +46,112 @@ export const CustomFlow = () => {
           </p>
         </div>
 
-        {/* Galería de imágenes asimétrica */}
+        {/* Galería asimétrica — 7 imágenes */}
         <div ref={galleryRef} className="reveal mb-20">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-            {/* Imagen 1: Principal, más grande */}
-            <div className="md:col-span-7 aspect-[4/3] relative bg-card border border-border group overflow-hidden flex flex-col items-center justify-center text-muted-foreground hover:border-primary/50 transition-colors">
-              <ImagePlus size={48} className="mb-4 opacity-50 group-hover:scale-110 transition-transform duration-500 group-hover:text-primary" />
-              <div className="text-xs uppercase tracking-[0.2em] font-semibold text-foreground/80">Imagen Principal</div>
-              <div className="text-[10px] uppercase tracking-widest mt-1 opacity-60">Recomendado: 4:3 Horizontal</div>
-              {/* Cuando tengas la imagen, descomenta esto y borra lo de arriba:
-              <img src="/assets/tu-imagen-1.jpg" alt="Detalle" className="absolute inset-0 w-full h-full object-cover" />
-              */}
-            </div>
+          <div className="grid grid-cols-2 md:grid-cols-12 gap-3 md:gap-4 auto-rows-[200px] md:auto-rows-[220px] lg:auto-rows-[260px]">
 
-            {/* Columna derecha con 3 imágenes */}
-            <div className="md:col-span-5 grid grid-rows-2 gap-4">
-              {/* Imagen 2: Horizontal ancha */}
-              <div className="relative bg-card border border-border group overflow-hidden flex flex-col items-center justify-center text-muted-foreground hover:border-primary/50 transition-colors">
-                <ImagePlus size={32} className="mb-2 opacity-50 group-hover:scale-110 transition-transform duration-500 group-hover:text-primary" />
-                <div className="text-[10px] uppercase tracking-[0.2em] font-semibold text-foreground/80">Detalle Textura</div>
-                {/* <img src="/assets/tu-imagen-2.jpg" alt="Textura" className="absolute inset-0 w-full h-full object-cover" /> */}
+            {/* Fila 1: Dibu (hero grande) + Maxi Rodríguez */}
+            <div className="col-span-2 md:col-span-7 row-span-2 relative bg-card border border-border group overflow-hidden rounded-xl">
+              <img
+                src={galleryImages[0].src}
+                alt={galleryImages[0].alt}
+                className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out">
+                <span className="text-xs uppercase tracking-[0.3em] text-primary font-semibold">{galleryImages[0].label}</span>
               </div>
-
-              {/* Fila inferior con 2 imágenes cuadradas */}
-              <div className="grid grid-cols-2 gap-4">
-                {/* Imagen 3 */}
-                <div className="aspect-square relative bg-card border border-border group overflow-hidden flex flex-col items-center justify-center text-muted-foreground hover:border-primary/50 transition-colors">
-                  <ImagePlus size={24} className="mb-2 opacity-50 group-hover:scale-110 transition-transform duration-500 group-hover:text-primary" />
-                  <div className="text-[9px] uppercase tracking-[0.2em] font-semibold text-foreground/80 text-center px-2">Canto / Grip</div>
-                  {/* <img src="/assets/tu-imagen-3.jpg" alt="Grip" className="absolute inset-0 w-full h-full object-cover" /> */}
-                </div>
-
-                {/* Imagen 4 */}
-                <div className="aspect-square relative bg-card border border-border group overflow-hidden flex flex-col items-center justify-center text-muted-foreground hover:border-primary/50 transition-colors">
-                  <ImagePlus size={24} className="mb-2 opacity-50 group-hover:scale-110 transition-transform duration-500 group-hover:text-primary" />
-                  <div className="text-[9px] uppercase tracking-[0.2em] font-semibold text-foreground/80 text-center px-2">Jugador</div>
-                  {/* <img src="/assets/tu-imagen-4.jpg" alt="Acción" className="absolute inset-0 w-full h-full object-cover" /> */}
-                </div>
+              <div className="absolute top-3 left-3 md:top-4 md:left-4">
+                <span className="text-[10px] uppercase tracking-[0.3em] bg-primary/90 text-primary-foreground px-3 py-1 font-bold backdrop-blur-sm">Custom</span>
               </div>
             </div>
+
+            <div className="col-span-1 md:col-span-5 row-span-2 relative bg-card border border-border group overflow-hidden rounded-xl">
+              <img
+                src={galleryImages[1].src}
+                alt={galleryImages[1].alt}
+                className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out">
+                <span className="text-xs uppercase tracking-[0.3em] text-primary font-semibold">{galleryImages[1].label}</span>
+              </div>
+            </div>
+
+            {/* Fila 2: Di María + Vert1 + Vert3 */}
+            <div className="col-span-1 md:col-span-4 row-span-2 relative bg-card border border-border group overflow-hidden rounded-xl">
+              <img
+                src={galleryImages[2].src}
+                alt={galleryImages[2].alt}
+                className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out">
+                <span className="text-xs uppercase tracking-[0.3em] text-primary font-semibold">{galleryImages[2].label}</span>
+              </div>
+            </div>
+
+            <div className="col-span-1 md:col-span-4 row-span-2 relative bg-card border border-border group overflow-hidden rounded-xl">
+              <img
+                src={galleryImages[3].src}
+                alt={galleryImages[3].alt}
+                className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out">
+                <span className="text-xs uppercase tracking-[0.3em] text-primary font-semibold">{galleryImages[3].label}</span>
+              </div>
+            </div>
+
+            <div className="col-span-1 md:col-span-4 row-span-2 relative bg-card border border-border group overflow-hidden rounded-xl">
+              <img
+                src={galleryImages[4].src}
+                alt={galleryImages[4].alt}
+                className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out">
+                <span className="text-xs uppercase tracking-[0.3em] text-primary font-semibold">{galleryImages[4].label}</span>
+              </div>
+            </div>
+
+            {/* Fila 3: Lavezzi + Kily Gonzalez + Gustavo Lietti */}
+            <div className="col-span-1 md:col-span-4 row-span-2 relative bg-card border border-border group overflow-hidden rounded-xl">
+              <img
+                src={galleryImages[5].src}
+                alt={galleryImages[5].alt}
+                className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out">
+                <span className="text-xs uppercase tracking-[0.3em] text-primary font-semibold">{galleryImages[5].label}</span>
+              </div>
+            </div>
+
+            <div className="col-span-1 md:col-span-4 row-span-2 relative bg-card border border-border group overflow-hidden rounded-xl">
+              <img
+                src={galleryImages[6].src}
+                alt={galleryImages[6].alt}
+                className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out">
+                <span className="text-xs uppercase tracking-[0.3em] text-primary font-semibold">{galleryImages[6].label}</span>
+              </div>
+            </div>
+
+            <div className="col-span-1 md:col-span-4 row-span-2 relative bg-card border border-border group overflow-hidden rounded-xl">
+              <img
+                src={galleryImages[7].src}
+                alt={galleryImages[7].alt}
+                className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out">
+                <span className="text-xs uppercase tracking-[0.3em] text-primary font-semibold">{galleryImages[7].label}</span>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -80,7 +167,7 @@ export const CustomFlow = () => {
 
         <div className="mt-16 flex flex-col sm:flex-row gap-4">
           <a
-            href="https://wa.me/1234567890?text=Hola!%20Me%20interesa%20personalizar%20una%20paleta%20VERSUS%20de%20%C3%A9lite."
+            href="https://wa.me/543412694610?text=Hola!%20Me%20interesa%20personalizar%20una%20paleta%20VERSUS%20de%20%C3%A9lite."
             target="_blank"
             rel="noopener noreferrer"
             className="group inline-flex items-center justify-center gap-3 bg-primary text-primary-foreground px-8 py-4 text-sm uppercase tracking-[0.2em] font-bold hover:bg-primary-glow transition-all"
