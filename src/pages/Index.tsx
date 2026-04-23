@@ -17,8 +17,8 @@ const Index = () => {
       <Marquee />
       <Shop />
       <CustomFlow />
-      <ProPlayers />
       <B2B />
+      <ProPlayers />
 
       <Footer />
     </main>
