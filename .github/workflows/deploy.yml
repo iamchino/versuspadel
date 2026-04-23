@@ -37,7 +37,7 @@ jobs:
       - name: Build production bundle
         run: npm run build
         env:
-          VITE_WC_STORE_URL: https://api.versuspadel.ar
+          VITE_WC_STORE_URL: https://versuspadel.ar/api
 
       - name: Copy PHP backend files to dist
         run: |
