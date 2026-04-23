@@ -1,14 +1,19 @@
-# ──────────────────────────────────────────────────────────
-# GitHub Actions: Deploy to DonWeb/Ferozo via FTP
-#
-# Triggers on every push to `main`.
-# 1. Installs dependencies & builds the React app
-# 2. Uploads the built files (dist/) + PHP backend to Ferozo via FTP
+# ──────────────────────────────────────────────────────────────────────────────
+# Deploy to DonWeb/Ferozo via FTP
 #
 # Architecture:
-#   versuspadel.ar       → /public_html/ (React SPA)
-#   api.versuspadel.ar   → /public_html/api/ (WordPress + WooCommerce)
-# ──────────────────────────────────────────────────────────
+#   versuspadel.ar        → /public_html/          (React SPA)
+#   api.versuspadel.ar    → /public_html/api/       (WordPress + WooCommerce)
+#   /public_html/backend/ → PHP proxy for admin ops
+#
+# Required GitHub Secrets:
+#   FTP_SERVER              → l0100520.ferozo.com
+#   FTP_USERNAME            → l0100520
+#   FTP_PASSWORD            → FTP password
+#   VITE_WC_URL             → https://api.versuspadel.ar
+#   VITE_WC_CONSUMER_KEY    → ck_xxxx (WooCommerce REST API key)
+#   VITE_WC_CONSUMER_SECRET → cs_xxxx (WooCommerce REST API secret)
+# ──────────────────────────────────────────────────────────────────────────────
 
 name: Deploy to DonWeb
 
@@ -37,7 +42,9 @@ jobs:
       - name: Build production bundle
         run: npm run build
         env:
-          VITE_WC_STORE_URL: https://versuspadel.ar/api
+          VITE_WC_URL: ${{ secrets.VITE_WC_URL }}
+          VITE_WC_CONSUMER_KEY: ${{ secrets.VITE_WC_CONSUMER_KEY }}
+          VITE_WC_CONSUMER_SECRET: ${{ secrets.VITE_WC_CONSUMER_SECRET }}
 
       - name: Copy PHP backend files to dist
         run: |
@@ -50,7 +57,7 @@ jobs:
 
       - name: Deploy to Ferozo via FTP
         run: |
-          lftp -u "${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }}" ${{ secrets.FTP_SERVER }} <<EOF
+          lftp -u "${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }}" ${{ secrets.FTP_SERVER }} <<'LFTP_EOF'
           set ftp:ssl-allow no
           set net:max-retries 5
           set net:reconnect-interval-base 5
@@ -58,21 +65,21 @@ jobs:
           set mirror:parallel-transfer-count 2
           mirror --reverse --verbose --ignore-time \
             --exclude ^api/ \
+            --exclude ^api\.versuspadel\.ar \
             --exclude ^wp- \
+            --exclude ^wp-admin/ \
+            --exclude ^wp-content/ \
+            --exclude ^wp-includes/ \
             --exclude ^cgi-bin/ \
-            --exclude ^css/ \
-            --exclude ^img/ \
-            --exclude ^logos/ \
-            --exclude \.htpasswd \
-            --exclude index\.php \
-            --exclude xmlrpc\.php \
-            --exclude readme\.html \
-            --exclude licencia\.txt \
-            --exclude license\.txt \
-            --exclude \.htaccess\.bk \
-            --exclude wp-config\.php \
-            --exclude wp-config-sample\.php \
+            --exclude \.htaccess\.bk$ \
+            --exclude ^wp-config\.php$ \
+            --exclude ^wp-config-sample\.php$ \
+            --exclude ^xmlrpc\.php$ \
+            --exclude ^readme\.html$ \
+            --exclude ^licencia\.txt$ \
+            --exclude ^license\.txt$ \
+            --exclude ^index\.php$ \
             ./dist/ /public_html/
           bye
-          EOF
-          echo "Deploy complete!"
+          LFTP_EOF
+          echo "✅ Deploy complete!"
