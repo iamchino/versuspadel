@@ -1,21 +1,23 @@
 <?php
 /**
- * /api/upload-image.php — PHP Backend Endpoint
- *
- * Receives a base64-encoded image from the frontend and uploads it to the
- * WordPress Media Library using WP REST API + Application Passwords.
+ * upload-image.php — WordPress Media Library upload proxy
  *
  * POST { filename: string, data: string (base64), mimeType: string }
  * → 200 { id: number, src: string }
+ *
+ * Requires: Authorization: Bearer <token>
+ * Uses WordPress Application Passwords (WP_USERNAME + WP_APP_PASSWORD)
  */
 
 require_once __DIR__ . '/config.php';
 
 // ── CORS ──────────────────────────────────────────────────
+$allowed_origin = defined('FRONTEND_URL') ? FRONTEND_URL : 'https://versuspadel.ar';
 header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Origin: ' . $allowed_origin);
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Vary: Origin');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -30,30 +32,25 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 // ── Token validation ──────────────────────────────────────
 function validateToken(): bool {
+    if (!defined('ADMIN_PASSWORD')) return false;
     $headers = getallheaders();
-    $auth = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+    $auth    = $headers['Authorization'] ?? $headers['authorization'] ?? '';
     if (!$auth || strpos($auth, 'Bearer ') !== 0) return false;
 
     $token = substr($auth, 7);
-    try {
-        $decoded = base64_decode($token, true);
-        if ($decoded === false) return false;
+    $raw   = base64_decode($token, true);
+    if (!$raw) return false;
 
-        $parts = explode(':', $decoded, 2);
-        $password = $parts[0] ?? '';
-        $timestamp = $parts[1] ?? '';
+    $pos  = strrpos($raw, ':');
+    if ($pos === false) return false;
+    $sig  = substr($raw, 0, $pos);
+    $ts   = (int) substr($raw, $pos + 1);
 
-        if ($password !== ADMIN_PASSWORD) return false;
+    $expected = hash_hmac('sha256', ADMIN_PASSWORD . ':' . $ts, ADMIN_PASSWORD);
+    if (!hash_equals($expected, $sig)) return false;
 
-        if ($timestamp) {
-            $age = (time() * 1000) - intval($timestamp);
-            if ($age > TOKEN_MAX_AGE * 1000) return false;
-        }
-
-        return true;
-    } catch (Exception $e) {
-        return false;
-    }
+    $maxAge = defined('TOKEN_MAX_AGE') ? TOKEN_MAX_AGE : 86400;
+    return (time() - $ts) < $maxAge;
 }
 
 if (!validateToken()) {
@@ -62,18 +59,20 @@ if (!validateToken()) {
     exit;
 }
 
-// ── Validate WordPress credentials ────────────────────────
-$baseUrl = rtrim(WC_URL, '/');
-if (!$baseUrl || !defined('WP_USERNAME') || !defined('WP_APP_PASSWORD')) {
+// ── Validate WP credentials ───────────────────────────────
+$base = rtrim(WC_URL, '/');
+if (!$base || !defined('WP_USERNAME') || !WP_USERNAME
+           || !defined('WP_APP_PASSWORD') || !WP_APP_PASSWORD
+           || WP_APP_PASSWORD === 'your_app_password_here') {
     http_response_code(500);
-    echo json_encode(['error' => 'WordPress credentials not configured']);
+    echo json_encode(['error' => 'WordPress credentials not configured. Add WP_USERNAME and WP_APP_PASSWORD secrets.']);
     exit;
 }
 
 // ── Read body ─────────────────────────────────────────────
-$input = json_decode(file_get_contents('php://input'), true);
+$input    = json_decode(file_get_contents('php://input'), true);
 $filename = $input['filename'] ?? '';
-$data = $input['data'] ?? '';
+$data     = $input['data'] ?? '';
 $mimeType = $input['mimeType'] ?? '';
 
 if (!$filename || !$data || !$mimeType) {
@@ -82,35 +81,34 @@ if (!$filename || !$data || !$mimeType) {
     exit;
 }
 
-// ── Upload to WordPress ───────────────────────────────────
+// ── Upload to WordPress Media Library ─────────────────────
 $imageData = base64_decode($data);
-$wpAuth = 'Basic ' . base64_encode(WP_USERNAME . ':' . WP_APP_PASSWORD);
+$wpAuth    = 'Basic ' . base64_encode(WP_USERNAME . ':' . WP_APP_PASSWORD);
+$useSSL    = strpos(WC_URL, 'https://') === 0;
 
-$ch = curl_init($baseUrl . '/wp-json/wp/v2/media');
+$ch = curl_init($base . '/wp-json/wp/v2/media');
 curl_setopt_array($ch, [
     CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_POST => true,
-    CURLOPT_POSTFIELDS => $imageData,
-    CURLOPT_HTTPHEADER => [
+    CURLOPT_POST           => true,
+    CURLOPT_POSTFIELDS     => $imageData,
+    CURLOPT_HTTPHEADER     => [
         'Authorization: ' . $wpAuth,
         'Content-Type: ' . $mimeType,
-        'Content-Disposition: attachment; filename="' . $filename . '"',
+        'Content-Disposition: attachment; filename="' . basename($filename) . '"',
     ],
-    CURLOPT_TIMEOUT => 60,
-    CURLOPT_SSL_VERIFYPEER => true,
+    CURLOPT_TIMEOUT        => 60,
+    CURLOPT_SSL_VERIFYPEER => $useSSL,
+    CURLOPT_SSL_VERIFYHOST => $useSSL ? 2 : 0,
 ]);
 
 $response = curl_exec($ch);
-$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-$error = curl_error($ch);
+$httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+$error    = curl_error($ch);
 curl_close($ch);
 
 if ($error) {
     http_response_code(502);
-    echo json_encode([
-        'error' => 'Error uploading image',
-        'details' => $error,
-    ]);
+    echo json_encode(['error' => 'Error uploading image', 'details' => $error]);
     exit;
 }
 
@@ -122,6 +120,6 @@ if ($httpCode >= 400) {
 
 $result = json_decode($response, true);
 echo json_encode([
-    'id' => $result['id'] ?? 0,
+    'id'  => $result['id'] ?? 0,
     'src' => $result['source_url'] ?? '',
 ]);
