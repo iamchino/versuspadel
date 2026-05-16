@@ -1,11 +1,14 @@
 /**
- * src/lib/api.ts — Public storefront WooCommerce API
+ * src/lib/api.ts — Public storefront API
  *
- * Uses the WooCommerce Store API (wc/store/v1) which is public
- * and does not require authentication — safe to call from the browser.
+ * Calls /backend/storefront.php (same-server PHP proxy) instead of
+ * hitting WooCommerce directly from the browser.
  *
- * Base URL is injected at build time via VITE_WC_URL environment variable.
- * In GitHub Actions, this comes from the VITE_WC_URL repository secret.
+ * Benefits:
+ *  - No CORS issues
+ *  - No SSL dependency (PHP does HTTP internally)
+ *  - Fast: same-server call, 60s browser cache
+ *  - Credentials / WC_URL stay server-side only
  */
 
 export interface WcProduct {
@@ -43,6 +46,7 @@ export interface WcProduct {
     link: string;
   }[];
   is_in_stock: boolean;
+  featured: boolean;
   add_to_cart: {
     text: string;
     description: string;
@@ -53,31 +57,37 @@ export interface WcProduct {
   };
 }
 
-/**
- * WooCommerce base URL — set via VITE_WC_URL environment variable.
- * Example: https://api.versuspadel.ar
- */
-export const WC_BASE_URL = import.meta.env.VITE_WC_URL || '';
+/** PHP proxy — for API calls (avoids CORS + SSL issues) */
+const PROXY = '/backend/storefront.php';
+
+/** Direct WooCommerce URL — for cart/checkout page redirects */
+export const WC_STORE_URL = import.meta.env.VITE_WC_URL || 'http://api.versuspadel.ar';
+
+// Keep legacy export for any component that might reference it
+export const WC_BASE_URL = WC_STORE_URL;
 
 /**
- * Fetch all published products from WooCommerce Store API.
- * This endpoint is public — no authentication required.
+ * Fetch all published products via the PHP proxy.
  */
 export const fetchProducts = async (): Promise<WcProduct[]> => {
-  const response = await fetch(`${WC_BASE_URL}/wp-json/wc/store/v1/products`);
+  const t = Date.now();
+  const response = await fetch(`${PROXY}?endpoint=products&per_page=100&_t=${t}`);
   if (!response.ok) {
-    throw new Error('Failed to fetch products from WooCommerce');
+    throw new Error('Failed to fetch products');
   }
   return response.json();
 };
 
 /**
- * Fetch a single product by ID.
+ * Fetch a single product by ID via the PHP proxy.
  */
 export const fetchProductById = async (id: string | number): Promise<WcProduct> => {
-  const response = await fetch(`${WC_BASE_URL}/wp-json/wc/store/v1/products/${id}`);
+  const t = Date.now();
+  const response = await fetch(`${PROXY}?endpoint=products&id=${id}&_t=${t}`);
   if (!response.ok) {
     throw new Error(`Failed to fetch product ${id}`);
   }
   return response.json();
 };
+
+

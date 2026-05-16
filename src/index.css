@@ -146,7 +146,7 @@
   }
 
   .animate-marquee {
-    animation: marquee 30s linear infinite;
+    animation: marquee 16s linear infinite;
   }
 
   .grain::before {
@@ -158,4 +158,47 @@
     pointer-events: none;
     mix-blend-mode: overlay;
   }
+
+  /* Premium shimmer sweep on CTAs */
+  .shimmer-btn {
+    position: relative;
+    overflow: hidden;
+  }
+  .shimmer-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.12) 45%, rgba(255,255,255,0.06) 50%, transparent 55%);
+    transform: translateX(-100%);
+  }
+  .shimmer-btn:hover::after {
+    transform: translateX(100%);
+    transition: transform 0.7s ease;
+  }
+
+  /* Glow pulse for WhatsApp FAB */
+  @keyframes glowPulse {
+    0%, 100% { box-shadow: 0 10px 30px -5px hsl(42 88% 55% / 0.4); }
+    50% { box-shadow: 0 10px 50px -5px hsl(42 88% 55% / 0.7); }
+  }
+  .glow-pulse { animation: glowPulse 2.5s ease-in-out infinite; }
+
+  /* Section gold divider line */
+  .section-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.3), transparent);
+  }
+
+  /* Enhanced card hover glow */
+  .card-glow { transition: box-shadow 0.5s ease; }
+  .card-glow:hover { box-shadow: 0 0 40px -10px hsl(42 88% 55% / 0.15); }
+
+  /* Parallax helper */
+  .parallax-layer { will-change: transform; }
 }
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: hsl(0 0% 4%); }
+::-webkit-scrollbar-thumb { background: hsl(42 88% 55% / 0.25); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(42 88% 55% / 0.5); }

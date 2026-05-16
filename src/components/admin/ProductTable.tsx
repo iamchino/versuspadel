@@ -14,6 +14,8 @@ import {
   Package,
   AlertTriangle,
   Loader2,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import { type AdminProduct, deleteProduct } from "@/lib/admin-api";
 import { toast } from "sonner";
@@ -111,8 +113,27 @@ export function ProductTable({
                 )}
               </div>
               <p className="text-xs text-muted-foreground/50 mt-1 hidden md:block">
-                ID: {product.id} · {product.status === "publish" ? "Publicado" : product.status}
+                ID: {product.id} · {product.status === 'publish' ? 'Publicado' : product.status}
               </p>
+              {/* Stock badge */}
+              <div className="flex items-center gap-1.5 mt-1.5">
+                {product.stock_status === 'instock' ? (
+                  <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2 py-0.5 rounded-full">
+                    <CheckCircle2 className="w-3 h-3" /> En stock
+                    {product.stock_quantity != null && (
+                      <span className="text-emerald-300/70">· {product.stock_quantity} u.</span>
+                    )}
+                  </span>
+                ) : product.stock_status === 'outofstock' ? (
+                  <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-red-400 bg-red-400/10 border border-red-400/20 px-2 py-0.5 rounded-full">
+                    <XCircle className="w-3 h-3" /> Sin stock
+                  </span>
+                ) : product.stock_status === 'onbackorder' ? (
+                  <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded-full">
+                    En reserva
+                  </span>
+                ) : null}
+              </div>
             </div>
 
             {/* Actions */}

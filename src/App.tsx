@@ -5,6 +5,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Loader2 } from "lucide-react";
+import { ScrollToTop } from "@/components/ScrollToTop";
+import { AnalyticsTracker } from "@/components/AnalyticsTracker";
 
 const Index = lazy(() => import("./pages/Index.tsx"));
 const Store = lazy(() => import("./pages/Store.tsx"));
@@ -35,6 +37,8 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <AnalyticsTracker />
+        <ScrollToTop />
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<Index />} />

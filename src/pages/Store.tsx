@@ -1,19 +1,14 @@
 import { useState, useMemo } from "react";
 import { Navbar } from "@/components/versus/Navbar";
 import { Footer } from "@/components/versus/Footer";
-import { ShoppingCart, Filter, Search, Loader2 } from "lucide-react";
+import { ShoppingCart, Filter, Search, Loader2, Truck, ShieldCheck, Lock } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchProducts, WcProduct, WC_BASE_URL } from "@/lib/api";
+import { formatPrice } from "@/lib/format";
 import { Link } from "react-router-dom";
+import { trackAddToCart, trackCheckoutStart } from "@/lib/analytics";
 
-const formatPrice = (prices: WcProduct['prices']) => {
-  const priceValue = parseInt(prices.price, 10) / Math.pow(10, prices.currency_minor_unit);
-  return new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: prices.currency_code || "ARS",
-    minimumFractionDigits: prices.currency_minor_unit,
-  }).format(priceValue);
-};
+// formatPrice imported from @/lib/format
 
 const Store = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("Todos");
@@ -22,6 +17,9 @@ const Store = () => {
   const { data: products = [], isLoading, isError } = useQuery({
     queryKey: ["wc-products"],
     queryFn: fetchProducts,
+    staleTime: 0,              // Always consider data stale
+    refetchOnMount: 'always',  // Always refetch when component mounts
+    refetchOnWindowFocus: true,
   });
 
   // Extract unique categories from products
@@ -46,12 +44,15 @@ const Store = () => {
   const handleBuyNow = (e: React.MouseEvent, product: WcProduct) => {
     e.preventDefault();
     e.stopPropagation();
+    trackAddToCart(product, "checkout");
+    trackCheckoutStart(product);
     window.location.href = `${WC_BASE_URL}/checkout/?add-to-cart=${product.id}`;
   };
 
   const handleAddToCart = (e: React.MouseEvent, product: WcProduct) => {
     e.preventDefault();
     e.stopPropagation();
+    trackAddToCart(product, "cart");
     window.location.href = `${WC_BASE_URL}/cart/?add-to-cart=${product.id}`;
   };
 
@@ -61,9 +62,42 @@ const Store = () => {
       
       <div className="flex-1 max-w-7xl mx-auto px-6 lg:px-10 py-24 w-full">
         {/* Header */}
-        <div className="mb-12">
+        <div className="mb-8">
           <h1 className="font-display text-4xl md:text-5xl uppercase mb-4">Tienda <span className="text-gold-gradient italic">VERSUS</span></h1>
           <p className="text-muted-foreground">Equipamiento de élite para jugadores exigentes.</p>
+        </div>
+
+        {/* Trust / Shipping Banner */}
+        <div className="mb-10 border border-border/60 bg-card/50 backdrop-blur-sm overflow-hidden">
+          <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-border/40">
+            <div className="flex items-center gap-3 px-5 py-4 group">
+              <span className="flex items-center justify-center w-10 h-10 rounded-full border border-primary/25 bg-primary/10 group-hover:bg-primary/20 transition-colors shrink-0">
+                <Truck size={18} className="text-primary" />
+              </span>
+              <div>
+                <div className="text-xs font-bold uppercase tracking-[0.15em] text-foreground">Envíos gratis</div>
+                <div className="text-[11px] text-muted-foreground tracking-wide">A todo el país</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 px-5 py-4 group">
+              <span className="flex items-center justify-center w-10 h-10 rounded-full border border-primary/25 bg-primary/10 group-hover:bg-primary/20 transition-colors shrink-0">
+                <ShieldCheck size={18} className="text-primary" />
+              </span>
+              <div>
+                <div className="text-xs font-bold uppercase tracking-[0.15em] text-foreground">Garantía oficial</div>
+                <div className="text-[11px] text-muted-foreground tracking-wide">Calidad asegurada</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 px-5 py-4 group">
+              <span className="flex items-center justify-center w-10 h-10 rounded-full border border-primary/25 bg-primary/10 group-hover:bg-primary/20 transition-colors shrink-0">
+                <Lock size={18} className="text-primary" />
+              </span>
+              <div>
+                <div className="text-xs font-bold uppercase tracking-[0.15em] text-foreground">Compra segura</div>
+                <div className="text-[11px] text-muted-foreground tracking-wide">Pago protegido</div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-10">

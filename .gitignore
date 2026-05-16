@@ -20,6 +20,10 @@ dist-ssr
 # PHP config with server secrets (DonWeb)
 api-client/config.php
 backend/config.php
+backend/data/*.jsonl
+
+# Deploy script (may contain credentials)
+deploy-ftp.ps1
 
 # Editor directories and files
 .vscode/*

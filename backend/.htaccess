@@ -1,7 +1,7 @@
-# Block access to config file (contains secrets)
-<Files "config.php">
+# Block access to config and middleware files (contain secrets/logic)
+<FilesMatch "^(config|middleware)\.php$">
     Require all denied
-</Files>
+</FilesMatch>
 
 # Block access to TypeScript source files
 <FilesMatch "\.(ts|tsx)$">

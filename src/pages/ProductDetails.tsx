@@ -1,30 +1,33 @@
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { fetchProductById, WcProduct, WC_BASE_URL } from "@/lib/api";
+import { fetchProductById, WcProduct, WC_STORE_URL } from "@/lib/api";
+import { formatPrice } from "@/lib/format";
 import { Navbar } from "@/components/versus/Navbar";
 import { Footer } from "@/components/versus/Footer";
 import { Loader2, ArrowLeft, ShoppingCart, ShieldCheck, Truck, X, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { trackAddToCart, trackCheckoutStart, trackLead, trackProductView } from "@/lib/analytics";
 
-const formatPrice = (prices: WcProduct['prices']) => {
-  const priceValue = parseInt(prices.price, 10) / Math.pow(10, prices.currency_minor_unit);
-  return new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: prices.currency_code || "ARS",
-    minimumFractionDigits: prices.currency_minor_unit,
-  }).format(priceValue);
-};
+// formatPrice imported from @/lib/format
 
 const ProductDetails = () => {
   const { id } = useParams<{ id: string }>();
   const [selectedImage, setSelectedImage] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const trackedProductId = useRef<number | null>(null);
 
   const { data: product, isLoading, isError } = useQuery({
     queryKey: ["wc-product", id],
     queryFn: () => fetchProductById(id!),
     enabled: !!id,
   });
+
+  useEffect(() => {
+    if (product && trackedProductId.current !== product.id) {
+      trackedProductId.current = product.id;
+      trackProductView(product);
+    }
+  }, [product]);
 
   if (isLoading) {
     return (
@@ -58,11 +61,14 @@ const ProductDetails = () => {
   }
 
   const handleBuyNow = () => {
-    window.location.href = `${WC_BASE_URL}/checkout/?add-to-cart=${product.id}`;
+    trackAddToCart(product, "checkout");
+    trackCheckoutStart(product);
+    window.location.href = `${WC_STORE_URL}/checkout/?add-to-cart=${product.id}`;
   };
 
   const handleAddToCart = () => {
-    window.location.href = `${WC_BASE_URL}/cart/?add-to-cart=${product.id}`;
+    trackAddToCart(product, "cart");
+    window.location.href = `${WC_STORE_URL}/?add-to-cart=${product.id}&redirect=cart`;
   };
 
   const isCustomizable = product.categories.some(c => c.name === "Personalizadas");
@@ -103,10 +109,13 @@ const ProductDetails = () => {
                 {product.images.map((img, idx) => (
                   <button 
                     key={img.id}
-                    onClick={() => setSelectedImage(idx)}
-                    className={`aspect-square bg-secondary border overflow-hidden transition-all ${selectedImage === idx ? 'border-primary ring-1 ring-primary' : 'border-border opacity-70 hover:opacity-100'}`}
+                    onClick={() => { setSelectedImage(idx); setIsLightboxOpen(true); }}
+                    className={`aspect-square bg-secondary border overflow-hidden transition-all relative group/thumb ${selectedImage === idx ? 'border-primary ring-1 ring-primary' : 'border-border opacity-70 hover:opacity-100'}`}
                   >
                     <img src={img.thumbnail} alt={img.alt} loading="lazy" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/0 group-hover/thumb:bg-black/30 transition-colors flex items-center justify-center">
+                      <span className="opacity-0 group-hover/thumb:opacity-100 text-white text-[9px] uppercase tracking-widest transition-opacity">Ver</span>
+                    </div>
                   </button>
                 ))}
               </div>
@@ -126,19 +135,22 @@ const ProductDetails = () => {
               {formatPrice(product.prices)}
             </div>
 
-            {/* Short Description */}
-            <div 
-              className="prose prose-invert prose-p:text-muted-foreground prose-a:text-primary max-w-none mb-10"
-              dangerouslySetInnerHTML={{ __html: product.short_description || product.description }}
-            />
+            {/* Short Description — visible next to image */}
+            {product.short_description && (
+              <div 
+                className="prose prose-invert prose-p:text-muted-foreground prose-a:text-primary max-w-none mb-6 text-muted-foreground leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: product.short_description }}
+              />
+            )}
 
             {/* Actions */}
             <div className="mt-auto pt-8 border-t border-border">
               {isCustomizable ? (
                 <a
-                  href={`https://wa.me/1234567890?text=Hola!%20Me%20interesa%20personalizar%20el%20producto%20${product.name}.`}
+                  href={`https://wa.me/543417534534?text=Hola!%20Me%20interesa%20personalizar%20el%20producto%20${product.name}.`}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackLead("product_whatsapp", { product_id: product.id, product_name: product.name })}
                   className="w-full inline-flex items-center justify-center gap-3 bg-primary text-primary-foreground px-8 py-5 text-sm uppercase tracking-[0.2em] font-bold hover:bg-primary-glow transition-all"
                 >
                   Consultar por WhatsApp
@@ -234,17 +246,25 @@ const ProductDetails = () => {
             )}
           </div>
           
-          {/* Thumbnails indicator */}
+          {/* Thumbnails strip in lightbox */}
           {product.images.length > 1 && (
-            <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2">
-              {product.images.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedImage(idx)}
-                  className={`w-2.5 h-2.5 rounded-full transition-all ${selectedImage === idx ? 'bg-primary w-8' : 'bg-muted-foreground/50 hover:bg-muted-foreground'}`}
-                  aria-label={`Ir a imagen ${idx + 1}`}
-                />
-              ))}
+            <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2 px-4">
+              <div className="flex gap-2 overflow-x-auto max-w-full pb-1 scrollbar-hide">
+                {product.images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedImage(idx)}
+                    className={`flex-shrink-0 w-12 h-12 border-2 overflow-hidden transition-all ${
+                      selectedImage === idx
+                        ? 'border-primary opacity-100 ring-1 ring-primary'
+                        : 'border-transparent opacity-50 hover:opacity-80'
+                    }`}
+                    aria-label={`Ir a imagen ${idx + 1}`}
+                  >
+                    <img src={img.thumbnail} alt={img.alt} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>

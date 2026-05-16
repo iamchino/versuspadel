@@ -4,27 +4,26 @@ DirectoryIndex index.html
 # Enable URL rewriting
 RewriteEngine On
 
-# HTTPS redirect — DISABLED until SSL is ready
-# RewriteCond %{HTTPS} off
-# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# ── Proteger /api/ (WordPress + WooCommerce) ──────────────────
+# Si la ruta empieza con api/, no tocar nada — dejar que Apache/WordPress lo maneje
+RewriteCond %{REQUEST_URI} ^/api/ [NC]
+RewriteRule ^ - [L]
 
-# Don't interfere with /api/ directory (WordPress for api.versuspadel.ar)
-RewriteRule ^api/ - [L]
+# ── Proteger /backend/ (PHP proxy) ───────────────────────────
+RewriteCond %{REQUEST_URI} ^/backend/ [NC]
+RewriteRule ^ - [L]
 
-# Don't interfere with /backend/ PHP files
-RewriteRule ^backend/(.+\.php)$ backend/$1 [L]
-
-# Don't interfere with WordPress admin or core files
+# ── Proteger archivos de WordPress en raiz ────────────────────
 RewriteRule ^wp- - [L]
-RewriteRule ^xmlrpc\.php - [L]
+RewriteRule ^xmlrpc\.php$ - [L]
 
-# If it's a real file or directory, serve it directly
+# ── Si es un archivo o carpeta real, servirlo directamente ────
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-# SPA fallback: everything else goes to index.html (React Router)
-RewriteRule ^(.*)$ /index.html [L]
+# ── SPA fallback: todo lo demas va a React ────────────────────
+RewriteRule ^ /index.html [L]
 
 # ── Security Headers ──────────────────────────────────────
 <IfModule mod_headers.c>

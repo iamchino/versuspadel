@@ -12,7 +12,7 @@
  */
 
 import { useState, useCallback } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   Plus,
@@ -22,10 +22,12 @@ import {
   Package,
   Loader2,
   WifiOff,
+  BarChart2,
 } from "lucide-react";
 import { AdminLogin } from "@/components/admin/AdminLogin";
 import { ProductForm } from "@/components/admin/ProductForm";
 import { ProductTable } from "@/components/admin/ProductTable";
+import { AnalyticsDashboard } from "@/components/admin/AnalyticsDashboard";
 import {
   isAuthenticated,
   clearToken,
@@ -38,7 +40,9 @@ export default function Admin() {
   const [authed, setAuthed] = useState(isAuthenticated());
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<AdminProduct | null>(null);
+  const [activeTab, setActiveTab] = useState<'products' | 'analytics'>('products');
   const isDemo = isDemoMode();
+  const queryClient = useQueryClient();
 
   // ── Fetch products ──
   const {
@@ -75,8 +79,26 @@ export default function Admin() {
   const handleSaved = useCallback(() => {
     setShowForm(false);
     setEditingProduct(null);
+
+    // Pass 1 — immediate
     refetch();
-  }, [refetch]);
+    queryClient.invalidateQueries({ queryKey: ["wc-products"] });
+    queryClient.invalidateQueries({ queryKey: ["wc-products-home"] });
+
+    // Pass 2 — 700ms (WooCommerce finishes updating its cache)
+    setTimeout(() => {
+      refetch();
+      queryClient.invalidateQueries({ queryKey: ["wc-products"] });
+      queryClient.invalidateQueries({ queryKey: ["wc-products-home"] });
+    }, 700);
+
+    // Pass 3 — 1500ms (for featured exclusive logic: extra WC API calls take extra time)
+    setTimeout(() => {
+      refetch();
+      queryClient.invalidateQueries({ queryKey: ["wc-products"] });
+      queryClient.invalidateQueries({ queryKey: ["wc-products-home"] });
+    }, 1500);
+  }, [refetch, queryClient]);
 
   const handleCloseForm = () => {
     setShowForm(false);
@@ -120,6 +142,29 @@ export default function Admin() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Tab switcher */}
+            <div className="hidden md:flex items-center bg-secondary/30 border border-border/30 rounded-md p-1 gap-1">
+              <button
+                onClick={() => setActiveTab('products')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs uppercase tracking-wider transition-all ${
+                  activeTab === 'products'
+                    ? 'bg-card text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Package className="w-3.5 h-3.5" /> Productos
+              </button>
+              <button
+                onClick={() => setActiveTab('analytics')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs uppercase tracking-wider transition-all ${
+                  activeTab === 'analytics'
+                    ? 'bg-card text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <BarChart2 className="w-3.5 h-3.5" /> Analytics
+              </button>
+            </div>
             <button
               onClick={() => refetch()}
               disabled={isFetching}
@@ -221,24 +266,29 @@ export default function Admin() {
           </div>
         )}
 
-        {/* ── Products list ── */}
-        <div className="bg-card/30 border border-border/20 rounded-lg p-4 md:p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm uppercase tracking-wider text-muted-foreground font-medium">
-              Productos
-            </h2>
-            {isFetching && !isLoading && (
-              <Loader2 className="w-4 h-4 text-primary animate-spin" />
-            )}
-          </div>
+        {/* ── Analytics tab ── */}
+        <AnalyticsDashboard visible={activeTab === 'analytics'} />
 
-          <ProductTable
-            products={products}
-            loading={isLoading}
-            onEdit={handleEdit}
-            onDeleted={() => refetch()}
-          />
-        </div>
+        {/* ── Products tab ── */}
+        {activeTab === 'products' && (
+          <div className="bg-card/30 border border-border/20 rounded-lg p-4 md:p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm uppercase tracking-wider text-muted-foreground font-medium">
+                Productos
+              </h2>
+              {isFetching && !isLoading && (
+                <Loader2 className="w-4 h-4 text-primary animate-spin" />
+              )}
+            </div>
+
+            <ProductTable
+              products={products}
+              loading={isLoading}
+              onEdit={handleEdit}
+              onDeleted={() => refetch()}
+            />
+          </div>
+        )}
 
         {/* ── Footer ── */}
         <p className="text-center text-xs text-muted-foreground/30 mt-10">
@@ -249,6 +299,7 @@ export default function Admin() {
       {/* ── Product Form Modal ── */}
       {showForm && (
         <ProductForm
+          key={editingProduct?.id ?? 'new'}
           product={editingProduct}
           onClose={handleCloseForm}
           onSaved={handleSaved}

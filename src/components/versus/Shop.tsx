@@ -1,16 +1,21 @@
-import { useReveal } from "@/hooks/useReveal";
+import { useRef } from "react";
+import { motion, useScroll, useTransform, useInView } from "framer-motion";
 import { ArrowRight, PackageSearch, Sparkles, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { fetchProducts, WcProduct } from "@/lib/api";
+import { formatPrice } from "@/lib/format";
 
-const formatPrice = (prices: WcProduct["prices"]) => {
-  const val = parseInt(prices.price, 10) / Math.pow(10, prices.currency_minor_unit);
-  return new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: prices.currency_code || "ARS",
-    minimumFractionDigits: 0,
-  }).format(val);
+// formatPrice imported from @/lib/format
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 60, scale: 0.95 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.8, delay: i * 0.15, ease: [0.16, 1, 0.3, 1] },
+  }),
 };
 
 const EmptyCard = ({ index }: { index: number }) => (
@@ -31,51 +36,90 @@ const EmptyCard = ({ index }: { index: number }) => (
 );
 
 export const Shop = () => {
-  const headRef = useReveal<HTMLDivElement>();
-  const featRef = useReveal<HTMLDivElement>();
-  const gridRef = useReveal<HTMLDivElement>();
+  const sectionRef = useRef<HTMLElement>(null);
+  const headRef = useRef<HTMLDivElement>(null);
+  const featRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  const headInView = useInView(headRef, { once: true, margin: "-10%" });
+  const featInView = useInView(featRef, { once: true, margin: "-10%" });
+  const gridInView = useInView(gridRef, { once: true, margin: "-10%" });
+
+  // Parallax for featured image
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start end", "end start"] });
+  const featImgY = useTransform(scrollYProgress, [0, 1], ["0%", "-12%"]);
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ["wc-products-home"],
     queryFn: fetchProducts,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
   });
 
-  // Use first product as featured, next 3 for grid
-  const featured = products[0] ?? null;
-  const gridProducts = products.slice(1, 4);
+  const featured = products.find(p => p.featured) ?? products[0] ?? null;
+  const gridProducts = products.filter(p => p !== featured).slice(0, 3);
   const showPlaceholders = !isLoading && products.length === 0;
 
   return (
-    <section id="shop" className="relative bg-background py-24 lg:py-32">
+    <section ref={sectionRef} id="shop" className="relative bg-background py-24 lg:py-32">
+      {/* Decorative gold line separator */}
+      <div className="absolute top-0 inset-x-0 section-divider" />
+
       <div className="max-w-7xl mx-auto px-6 lg:px-10">
         {/* Header */}
-        <div ref={headRef} className="reveal flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-16">
+        <motion.div
+          ref={headRef}
+          initial={{ opacity: 0, y: 50 }}
+          animate={headInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-16"
+        >
           <div>
-            <div className="text-xs uppercase tracking-[0.4em] text-primary mb-4">Tienda · Colección 2025</div>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={headInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="text-xs uppercase tracking-[0.4em] text-primary mb-4"
+            >
+              Tienda · Colección 2025
+            </motion.div>
             <h2 className="font-display text-6xl md:text-8xl lg:text-9xl uppercase leading-[0.9] text-balance">
               Nuestra <span className="text-gold-gradient italic">colección.</span>
             </h2>
           </div>
-          <p className="text-muted-foreground max-w-md text-lg leading-relaxed">
-            Descubre nuestra línea completa de paletas. Performance profesional, diseño editorial.
-          </p>
-        </div>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={headInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="text-muted-foreground max-w-md text-lg leading-relaxed"
+          >
+            Descubre nuestra línea completa de paletas. Performance profesional.
+          </motion.p>
+        </motion.div>
 
         {/* Featured hero product */}
-        <div ref={featRef} className="reveal grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mb-20 lg:mb-28 group">
+        <motion.div
+          ref={featRef}
+          initial={{ opacity: 0, y: 60 }}
+          animate={featInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mb-20 lg:mb-28 group"
+        >
           <div className="lg:col-span-7 relative aspect-[4/3] lg:aspect-auto lg:min-h-[520px] overflow-hidden bg-muted">
             {isLoading ? (
               <div className="w-full h-full bg-muted/50 animate-pulse" />
             ) : featured ? (
               <>
                 {featured.images.length > 0 ? (
-                  <img
-                    src={featured.images[0].src}
-                    alt={featured.images[0].alt || featured.name}
-                    loading="lazy"
-                    className="w-full h-full object-cover transition-transform duration-[1500ms] ease-out group-hover:scale-105"
-                  />
+                  <motion.div className="absolute inset-[-8%] parallax-layer" style={{ y: featImgY }}>
+                    <img
+                      src={featured.images[0].src}
+                      alt={featured.images[0].alt || featured.name}
+                      loading="lazy"
+                      className="w-full h-full object-cover transition-transform duration-[1500ms] ease-out group-hover:scale-105"
+                    />
+                  </motion.div>
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center gap-4 text-muted-foreground/30">
                     <PackageSearch size={64} strokeWidth={1} />
@@ -107,41 +151,64 @@ export const Shop = () => {
               </div>
             ) : featured ? (
               <>
-                <div className="text-xs uppercase tracking-[0.3em] text-primary">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={featInView ? { opacity: 1, x: 0 } : {}}
+                  transition={{ duration: 0.7, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                  className="text-xs uppercase tracking-[0.3em] text-primary"
+                >
                   {featured.categories.map(c => c.name).join(" · ") || "Paleta Premium"}
-                </div>
-                <h3 className="font-display text-5xl md:text-6xl lg:text-7xl uppercase leading-[0.95]">
+                </motion.div>
+                <motion.h3
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={featInView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  className="font-display text-4xl md:text-5xl uppercase leading-[0.95]"
+                >
                   {featured.name}
-                </h3>
+                </motion.h3>
                 {featured.short_description && (
-                  <p
-                    className="text-muted-foreground text-lg leading-relaxed max-w-md line-clamp-3"
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={featInView ? { opacity: 1, y: 0 } : {}}
+                    transition={{ duration: 0.7, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                    className="text-muted-foreground text-base leading-relaxed max-w-md prose prose-invert prose-p:text-muted-foreground prose-p:my-1 max-w-none"
                     dangerouslySetInnerHTML={{ __html: featured.short_description }}
                   />
                 )}
-                <div className="flex items-baseline gap-4">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={featInView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.7, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                  className="flex items-baseline gap-4"
+                >
                   <span className="font-display text-4xl text-gold-gradient">
                     {formatPrice(featured.prices)}
                   </span>
                   <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
                     {featured.is_in_stock ? "En stock" : "Sin stock"}
                   </span>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={featInView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.7, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                  className="flex flex-col sm:flex-row gap-3 pt-2"
+                >
                   <Link
                     to={`/product/${featured.id}`}
-                    className="group/btn inline-flex items-center justify-center gap-3 bg-primary text-primary-foreground px-8 py-4 text-sm uppercase tracking-[0.2em] font-bold hover:bg-primary-glow transition-all"
+                    className="shimmer-btn group/btn inline-flex items-center justify-center gap-3 bg-primary text-primary-foreground px-8 py-4 text-sm uppercase tracking-[0.2em] font-bold hover:shadow-[0_0_40px_hsl(42_88%_55%/0.4)] transition-all duration-500"
                   >
                     Ver producto
-                    <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
+                    <ArrowRight size={16} className="group-hover/btn:translate-x-1.5 transition-transform duration-300" />
                   </Link>
                   <Link
                     to="/store"
-                    className="inline-flex items-center justify-center gap-3 border border-border text-foreground px-8 py-4 text-sm uppercase tracking-[0.2em] font-semibold hover:border-primary/50 transition-all"
+                    className="inline-flex items-center justify-center gap-3 border border-border text-foreground px-8 py-4 text-sm uppercase tracking-[0.2em] font-semibold hover:border-primary/50 transition-all duration-500"
                   >
                     Ir a la Tienda
                   </Link>
-                </div>
+                </motion.div>
               </>
             ) : (
               <div className="space-y-4">
@@ -161,11 +228,16 @@ export const Shop = () => {
               </div>
             )}
           </div>
-        </div>
+        </motion.div>
 
         {/* Grid */}
-        <div ref={gridRef} className="reveal">
-          <div className="flex items-end justify-between mb-8 border-t border-border pt-10">
+        <div ref={gridRef}>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={gridInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="flex items-end justify-between mb-8 border-t border-border pt-10"
+          >
             <h3 className="font-display text-3xl md:text-4xl uppercase">Explorar catálogo</h3>
             <Link
               to="/store"
@@ -173,7 +245,7 @@ export const Shop = () => {
             >
               Ver todo <ArrowRight size={14} />
             </Link>
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {isLoading
@@ -189,46 +261,55 @@ export const Shop = () => {
                 ))
               : showPlaceholders
               ? Array.from({ length: 3 }).map((_, i) => <EmptyCard key={i} index={i + 1} />)
-              : gridProducts.map((p) => (
-                  <Link
-                    to={`/product/${p.id}`}
+              : gridProducts.map((p, idx) => (
+                  <motion.div
                     key={p.id}
-                    className="group relative bg-card border border-border hover:border-primary/40 transition-all duration-500 overflow-hidden cursor-pointer block"
+                    custom={idx}
+                    initial="hidden"
+                    animate={gridInView ? "visible" : "hidden"}
+                    variants={cardVariants}
                   >
-                    <div className="relative aspect-square overflow-hidden bg-muted">
-                      {p.images.length > 0 ? (
-                        <img
-                          src={p.images[0].src}
-                          alt={p.images[0].alt || p.name}
-                          loading="lazy"
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
-                          <PackageSearch size={36} strokeWidth={1} />
-                        </div>
-                      )}
-                      {!p.is_in_stock && (
-                        <div className="absolute top-4 right-4 bg-foreground text-background text-[10px] uppercase tracking-[0.18em] font-bold px-2.5 py-1.5">
-                          Agotado
-                        </div>
-                      )}
-                      {p.categories.some(c => c.name.toLowerCase().includes("personaliz")) && (
-                        <div className="absolute top-4 left-4 inline-flex items-center gap-1.5 bg-primary text-primary-foreground text-[10px] uppercase tracking-[0.18em] font-bold px-2.5 py-1.5">
-                          <Sparkles size={10} /> Personalizable
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-5 space-y-2">
-                      <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground line-clamp-1">
-                        {p.categories.map(c => c.name).join(" · ")}
+                    <Link
+                      to={`/product/${p.id}`}
+                      className="group relative bg-card border border-border hover:border-primary/40 transition-all duration-500 overflow-hidden cursor-pointer block card-glow"
+                    >
+                      <div className="relative aspect-square overflow-hidden bg-muted">
+                        {p.images.length > 0 ? (
+                          <img
+                            src={p.images[0].src}
+                            alt={p.images[0].alt || p.name}
+                            loading="lazy"
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
+                            <PackageSearch size={36} strokeWidth={1} />
+                          </div>
+                        )}
+                        {!p.is_in_stock && (
+                          <div className="absolute top-4 right-4 bg-foreground text-background text-[10px] uppercase tracking-[0.18em] font-bold px-2.5 py-1.5">
+                            Agotado
+                          </div>
+                        )}
+                        {p.categories.some(c => c.name.toLowerCase().includes("personaliz")) && (
+                          <div className="absolute top-4 left-4 inline-flex items-center gap-1.5 bg-primary text-primary-foreground text-[10px] uppercase tracking-[0.18em] font-bold px-2.5 py-1.5">
+                            <Sparkles size={10} /> Personalizable
+                          </div>
+                        )}
+                        {/* Hover overlay shine */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                       </div>
-                      <div className="flex flex-col gap-2">
-                        <h4 className="font-display text-xl uppercase line-clamp-1">{p.name}</h4>
-                        <span className="text-sm text-foreground/80">{formatPrice(p.prices)}</span>
+                      <div className="p-5 space-y-2">
+                        <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground line-clamp-1">
+                          {p.categories.map(c => c.name).join(" · ")}
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <h4 className="font-display text-xl uppercase line-clamp-1">{p.name}</h4>
+                          <span className="text-sm text-foreground/80">{formatPrice(p.prices)}</span>
+                        </div>
                       </div>
-                    </div>
-                  </Link>
+                    </Link>
+                  </motion.div>
                 ))}
           </div>
 

@@ -23,6 +23,7 @@ name: Deploy to DonWeb
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -48,12 +49,17 @@ jobs:
           VITE_WC_URL: ${{ secrets.VITE_WC_URL }}
           VITE_WC_CONSUMER_KEY: ${{ secrets.VITE_WC_CONSUMER_KEY }}
           VITE_WC_CONSUMER_SECRET: ${{ secrets.VITE_WC_CONSUMER_SECRET }}
+          VITE_META_PIXEL_ID: ${{ secrets.VITE_META_PIXEL_ID }}
+          VITE_ANALYTICS_ENDPOINT: /backend/track.php
 
       - name: Copy PHP backend files to dist
         run: |
           mkdir -p dist/backend
           cp backend/*.php dist/backend/
           cp backend/.htaccess dist/backend/
+          mkdir -p dist/backend/data
+          cp backend/data/.htaccess dist/backend/data/
+          cp backend/data/index.html dist/backend/data/
 
       - name: Generate config.php from secrets
         run: |

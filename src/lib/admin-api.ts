@@ -20,6 +20,10 @@ export interface AdminProduct {
   short_description: string;
   regular_price: string;
   price: string;
+  featured: boolean;
+  stock_status: 'instock' | 'outofstock' | 'onbackorder';
+  stock_quantity: number | null;
+  manage_stock: boolean;
   categories: { id: number; name: string; slug: string }[];
   images: { id: number; src: string; name: string; alt: string }[];
   status: string;
@@ -35,7 +39,12 @@ export interface AdminCategory {
 export interface ProductFormData {
   name: string;
   description: string;
+  short_description: string;
   regular_price: string;
+  featured: boolean;
+  stock_status: 'instock' | 'outofstock' | 'onbackorder';
+  manage_stock: boolean;
+  stock_quantity: number | null;
   categories: { id: number }[];
   images: { id: number; src: string }[];
 }
@@ -85,6 +94,10 @@ export const DEMO_PRODUCTS: AdminProduct[] = [
     regular_price: '89000',
     price: '89000',
     status: 'publish',
+    featured: true,
+    stock_status: 'instock',
+    stock_quantity: null,
+    manage_stock: false,
     categories: [{ id: 1, name: 'Paletas', slug: 'paletas' }],
     images: [{ id: 1, src: 'https://placehold.co/400x400/1a1a1a/d4a017?text=PRO+CARBON', name: 'pro-carbon', alt: 'VERSUS Pro Carbon 3K' }],
   },
@@ -96,6 +109,10 @@ export const DEMO_PRODUCTS: AdminProduct[] = [
     regular_price: '65000',
     price: '65000',
     status: 'publish',
+    featured: false,
+    stock_status: 'instock',
+    stock_quantity: null,
+    manage_stock: false,
     categories: [{ id: 1, name: 'Paletas', slug: 'paletas' }],
     images: [{ id: 2, src: 'https://placehold.co/400x400/1a1a1a/d4a017?text=ELITE+DIAMOND', name: 'elite-diamond', alt: 'VERSUS Elite Diamond' }],
   },
@@ -107,6 +124,10 @@ export const DEMO_PRODUCTS: AdminProduct[] = [
     regular_price: '4500',
     price: '4500',
     status: 'publish',
+    featured: false,
+    stock_status: 'instock',
+    stock_quantity: null,
+    manage_stock: false,
     categories: [{ id: 2, name: 'Accesorios', slug: 'accesorios' }],
     images: [{ id: 3, src: 'https://placehold.co/400x400/1a1a1a/d4a017?text=GRIP', name: 'grip', alt: 'Grip VERSUS Comfort' }],
   },
@@ -118,6 +139,10 @@ export const DEMO_PRODUCTS: AdminProduct[] = [
     regular_price: '28000',
     price: '28000',
     status: 'draft',
+    featured: false,
+    stock_status: 'instock',
+    stock_quantity: null,
+    manage_stock: false,
     categories: [{ id: 2, name: 'Accesorios', slug: 'accesorios' }],
     images: [{ id: 4, src: 'https://placehold.co/400x400/1a1a1a/d4a017?text=BOLSO', name: 'bolso', alt: 'Bolso VERSUS Team Bag' }],
   },
@@ -244,4 +269,139 @@ export async function uploadImage(file: File): Promise<{ id: number; src: string
     reader.onerror = () => reject(new Error('Failed to read file'));
     reader.readAsDataURL(file);
   });
+}
+
+// ── Analytics ──────────────────────────────────────────
+
+export interface RecentOrder {
+  id: number;
+  status: string;
+  total: string;
+  currency: string;
+  date: string;
+  customer: string;
+  items: string[];
+}
+
+export interface TopSeller {
+  name: string;
+  product_id: number;
+  quantity: number;
+}
+
+export interface SiteAnalytics {
+  period_days: number;
+  total_events: number;
+  page_views: number;
+  today_page_views: number;
+  unique_visitors: number;
+  today_visitors: number;
+  sessions: number;
+  product_views: number;
+  add_to_cart: number;
+  cart_views: number;
+  checkout_starts: number;
+  leads: number;
+  cart_rate: number;
+  checkout_rate: number;
+  top_pages: { path: string; views: number }[];
+  top_referrers: { host: string; views: number }[];
+  top_products: {
+    product_id: string;
+    name: string;
+    views: number;
+    add_to_cart: number;
+    checkout_starts: number;
+  }[];
+  daily: { date: string; page_views: number; visitors: number }[];
+  last_events: {
+    event: string;
+    path: string;
+    product_name: string;
+    created_at: string;
+  }[];
+}
+
+export interface AnalyticsData {
+  this_month: {
+    revenue: number;
+    orders: number;
+    by_status: Record<string, number>;
+  };
+  last_month: {
+    revenue: number;
+    orders: number;
+  };
+  revenue_growth: number;
+  pending_count: number;
+  recent_orders: RecentOrder[];
+  top_sellers: TopSeller[];
+  site?: SiteAnalytics;
+  generated_at: string;
+}
+
+export async function fetchAnalytics(): Promise<AnalyticsData> {
+  if (isDemoMode()) {
+    return Promise.resolve({
+      this_month: {
+        revenue: 234000,
+        orders: 4,
+        by_status: { pending: 1, processing: 1, completed: 2, cancelled: 0, "on-hold": 0 },
+      },
+      last_month: {
+        revenue: 180000,
+        orders: 3,
+      },
+      revenue_growth: 30,
+      pending_count: 2,
+      recent_orders: [
+        { id: 1024, status: "processing", total: "89000", currency: "ARS", date: "2026-05-15", customer: "Cliente Demo", items: ["VERSUS Pro Carbon 3K"] },
+      ],
+      top_sellers: [
+        { product_id: 1, name: "VERSUS Pro Carbon 3K", quantity: 3 },
+        { product_id: 2, name: "VERSUS Elite Diamond", quantity: 2 },
+      ],
+      site: {
+        period_days: 30,
+        total_events: 143,
+        page_views: 82,
+        today_page_views: 14,
+        unique_visitors: 37,
+        today_visitors: 8,
+        sessions: 44,
+        product_views: 31,
+        add_to_cart: 12,
+        cart_views: 9,
+        checkout_starts: 5,
+        leads: 4,
+        cart_rate: 14.6,
+        checkout_rate: 41.7,
+        top_pages: [
+          { path: "/", views: 28 },
+          { path: "/store", views: 22 },
+          { path: "/product/1", views: 16 },
+        ],
+        top_referrers: [
+          { host: "instagram.com", views: 11 },
+          { host: "google.com", views: 8 },
+        ],
+        top_products: [
+          { product_id: "1", name: "VERSUS Pro Carbon 3K", views: 18, add_to_cart: 7, checkout_starts: 3 },
+          { product_id: "2", name: "VERSUS Elite Diamond", views: 9, add_to_cart: 3, checkout_starts: 1 },
+        ],
+        daily: [],
+        last_events: [],
+      },
+      generated_at: new Date().toISOString(),
+    });
+  }
+
+  const res = await fetch('/backend/analytics.php', {
+    headers: authHeaders(),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Error al cargar analytics');
+  }
+  return res.json();
 }

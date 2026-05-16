@@ -7,26 +7,12 @@
  * → 401 { error: string }
  */
 
-require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/middleware.php';
 
-// ── CORS — solo permite el dominio propio ──────────────────
-$allowed_origin = defined('FRONTEND_URL') ? FRONTEND_URL : 'https://versuspadel.ar';
-header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: ' . $allowed_origin);
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
-header('Vary: Origin');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['error' => 'Method not allowed']);
-    exit;
-}
+// ── Setup ────────────────────────────────────────────────
+cors_headers('POST, OPTIONS');
+handle_preflight();
+require_method('POST');
 
 if (!defined('ADMIN_PASSWORD') || ADMIN_PASSWORD === '' || ADMIN_PASSWORD === 'your_admin_password_here') {
     http_response_code(500);
